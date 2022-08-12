@@ -1,0 +1,36 @@
+
+int photosensor = 0;
+
+void setup()
+{
+  PCICR |= B00000010;
+  PCMSK1 |= B00000001;
+  pinMode(2, INPUT);
+  pinMode(12, OUTPUT);
+  pinMode(A0, INPUT);
+  Serial.begin(9600);
+  pinMode(9, OUTPUT);
+  attachInterrupt(digitalPinToInterrupt(2), hello_ISR, CHANGE);
+}
+
+void loop()
+{
+ 
+}
+
+void hello_ISR()
+{
+  digitalWrite(12, digitalRead(2));
+  Serial.println("Motion Detected");
+}
+
+ISR(PCINT1_vect)
+{
+  photosensor = analogRead(A0);
+  if (photosensor > 25)
+  {
+  	Serial.println("Light Detected");
+  }
+  analogWrite(9, map(photosensor, 0, 1023, 0, 255));
+  delay(10); // Wait for 10 millisecond(s)
+}

@@ -1,0 +1,61 @@
+
+const byte LED_PIN = 13;
+volatile int M_state = 0;
+int M_pin = 3;
+int photosensor = 0;
+
+void setup()
+{
+  PCICR |= B00000010;
+  PCMSK1 |= B00000001;
+  pinMode(2, INPUT);
+  pinMode(M_pin, INPUT);
+  pinMode(12, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(A0, INPUT); 
+  Serial.begin(9600);
+  pinMode(9, OUTPUT);
+  attachInterrupt(digitalPinToInterrupt(2), hello_ISR, CHANGE);
+  startTimer();
+}
+
+void loop()
+{
+ 
+}
+
+void hello_ISR()
+{
+  digitalWrite(12, digitalRead(2));
+  Serial.println("Motion Detected");
+}
+
+ISR(PCINT1_vect)
+{
+  photosensor = analogRead(A0);
+  if (photosensor > 25)
+  {
+  	Serial.println("Light Detected");
+  }
+  analogWrite(9, map(photosensor, 0, 1023, 0, 255));
+  delay(10); // Wait for 10 millisecond(s)
+}
+
+void startTimer()
+{  
+  	noInterrupts();
+    TCCR1A =0;
+    TCCR1B =0;
+    TCNT1 = 0;
+    TCCR1B |= (1 << CS12) | (1 << CS10);
+	OCR1A = 10000;
+    TIMSK1 |= (1 << OCIE1A);
+    TCCR1B |= (1 << WGM12);
+    interrupts();    	    
+}
+
+ISR(TIMER1_COMPA_vect)
+{ 
+  	digitalWrite(LED_PIN, digitalRead(M_pin));
+  	Serial.println(digitalRead(M_pin));
+}
